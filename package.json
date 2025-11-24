@@ -1,0 +1,14 @@
+{
+    "name": "bun_key",
+    "module": "index.ts",
+    "type": "module",
+    "devDependencies": {
+        "@types/bun": "latest"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "dependencies": {
+        "@peculiar/x509": "^1.14.2",
+    }
+}
