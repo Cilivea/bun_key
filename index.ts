@@ -1,12 +1,18 @@
-import { X509Certificate, X509CertificateGenerator } from "@peculiar/x509"
+import { X509CertificateGenerator } from "@peculiar/x509"
 import * as crypto from "crypto"
+
+import { PrivateKey, EncryptedPrivateKey } from "./privateKey"
+import { PublicKey } from "./publicKey"
+import { Certificate } from "./certificate"
+
+export { PrivateKey, EncryptedPrivateKey, PublicKey, Certificate };
 
 export async function new_keypair() {
     let keys = crypto.generateKeyPairSync("ed25519", {})
 
     return {
-        privateKey: await PrivateKey.from_crypto(keys.privateKey),
-        publicKey: await PublicKey.from_crypto(keys.publicKey)
+        privateKey: PrivateKey.from_crypto(keys.privateKey),
+        publicKey: PublicKey.from_crypto(keys.publicKey)
     }
 }
 
@@ -40,74 +46,3 @@ export async function new_cert(seconds_to_expiry: number, public_key_permissions
     }
 }
 
-export class Certificate {
-    raw_cert: X509Certificate
-
-    constructor(cert: X509Certificate) {
-        this.raw_cert = cert
-    }
-}
-
-abstract class Key {
-    abstract keyObject: crypto.KeyObject
-
-    to_webcrypto(extractable: boolean, key_usages: crypto.webcrypto.KeyUsage[]) {
-        let a = this.keyObject.export({ format: "jwk" })
-
-        console.log("to_webcrypto", extractable, key_usages)
-        console.log("jwk", a)
-        let b = crypto.webcrypto.subtle.importKey("jwk", a, {
-            name: "Ed25519"
-        },
-            extractable,
-            key_usages)
-
-        return b
-    }
-}
-
-export class PrivateKey extends Key {
-    keyObject: crypto.KeyObject
-
-    constructor(key: crypto.KeyObject) {
-        super()
-        this.keyObject = key
-    }
-
-    static async from_crypto(key: crypto.KeyObject) {
-        return new PrivateKey(key)
-    }
-
-    save(passphrase: string): string {
-        return this.keyObject.export({ format: "pem", type: "pkcs8", passphrase: passphrase, cipher: "aes-256-cbc" }).toString()
-    }
-
-    static unencode(encoded_pkcs8: string, passphrase: string): PrivateKey | undefined {
-        try {
-            return new PrivateKey(
-                crypto.createPrivateKey({ key: encoded_pkcs8, passphrase: passphrase })
-            )
-        } catch (error) {
-            return undefined
-        }
-
-    }
-}
-
-export class PublicKey extends Key {
-    keyObject: crypto.KeyObject
-
-    constructor(key: crypto.KeyObject) {
-        super()
-        this.keyObject = key
-    }
-
-    static async from_crypto(key: crypto.KeyObject) {
-        return new PublicKey(key)
-    }
-
-    static async from_cert(x509_cert: X509Certificate) {
-        let a = crypto.createPublicKey(x509_cert.toString())
-        return new PublicKey(a)
-    }
-}
