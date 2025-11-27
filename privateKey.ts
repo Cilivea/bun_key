@@ -25,6 +25,10 @@ export class EncryptedPrivateKey {
             })
         )
     }
+
+    toString() {
+        return this.pkcs8_string
+    }
 }
 
 export class PrivateKey {
