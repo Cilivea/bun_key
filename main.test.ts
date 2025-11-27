@@ -11,7 +11,7 @@ test.test("simple test", async () => {
     let new_certs = await new_cert(300, ["verify"], old_certs.privateKey)
 
     // Verify the new certs using the old public key
-    let is_valid = await new_certs.certificate.verify({
+    let is_valid = await new_certs.certificate.raw_cert.verify({
         date: new Date(),
         publicKey: await old_certs.publicKey.to_webcrypto(true, ["verify"])
     })
@@ -20,7 +20,7 @@ test.test("simple test", async () => {
 
 
     // Verify the new certs with the new public key SHOULD FAIL, as it is equivalent to using wrong key
-    is_valid = await new_certs.certificate.verify({
+    is_valid = await new_certs.certificate.raw_cert.verify({
         date: new Date(),
         publicKey: await new_certs.publicKey.to_webcrypto(true, ["verify"])
     })

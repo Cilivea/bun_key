@@ -34,9 +34,17 @@ export async function new_cert(seconds_to_expiry: number, public_key_permissions
     })
 
     return {
-        certificate: cert,
+        certificate: new Certificate(cert),
         privateKey: privateKey,
         publicKey: publicKey
+    }
+}
+
+export class Certificate {
+    raw_cert: X509Certificate
+
+    constructor(cert: X509Certificate) {
+        this.raw_cert = cert
     }
 }
 
